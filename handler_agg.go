@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-func handleAgg(s *state, cmd command) error {
+func handlerAgg(s *state, cmd command) error {
 	feedURL := "https://www.wagslane.dev/index.xml"
 	feed, err := fetchFeed(context.Background(), feedURL)
 	if err != nil {

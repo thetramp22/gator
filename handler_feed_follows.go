@@ -36,3 +36,21 @@ func handlerFollow(s *state, cmd command, user database.User) error {
 
 	return nil
 }
+
+func handlerListFeedFollows(s *state, cmd command, user database.User) error {
+	if len(cmd.args) != 0 {
+		return fmt.Errorf("no arguments> required")
+	}
+
+	feedFollows, err := s.db.GetFeedFollowsForUser(context.Background(), user.ID)
+	if err != nil {
+		return fmt.Errorf("error getting feed follows: %v", err)
+	}
+
+	fmt.Printf("feeds followed for user '%v':\n", user.Name)
+	for _, feed := range feedFollows {
+		fmt.Printf("  * %v\n", feed.FeedName)
+	}
+
+	return nil
+}

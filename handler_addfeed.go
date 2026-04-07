@@ -13,16 +13,16 @@ func handlerAddfeed(s *state, cmd command) error {
 	if len(cmd.args) != 2 {
 		return fmt.Errorf("2 arguments required: <name> <url>")
 	}
-	name := cmd.args[0]
-	url := cmd.args[1]
-	ctx := context.Background()
 
-	user, err := s.db.GetUser(ctx, s.cfg.CurrentUserName)
+	user, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
 	if err != nil {
 		return fmt.Errorf("error getting user: %v", err)
 	}
 
-	feed, err := s.db.CreateFeed(ctx, database.CreateFeedParams{
+	name := cmd.args[0]
+	url := cmd.args[1]
+
+	feed, err := s.db.CreateFeed(context.Background(), database.CreateFeedParams{
 		ID:        uuid.New(),
 		CreatedAt: time.Now().UTC(),
 		UpdatedAt: time.Now().UTC(),
@@ -31,10 +31,10 @@ func handlerAddfeed(s *state, cmd command) error {
 		UserID:    user.ID,
 	})
 	if err != nil {
-		return fmt.Errorf("feed already exists: %v", err)
+		return fmt.Errorf("error creating feed: %v", err)
 	}
 
-	_, err = s.db.CreateFeedFollow(ctx, database.CreateFeedFollowParams{
+	feedFollow, err := s.db.CreateFeedFollow(context.Background(), database.CreateFeedFollowParams{
 		ID:        uuid.New(),
 		CreatedAt: time.Now().UTC(),
 		UpdatedAt: time.Now().UTC(),
@@ -45,8 +45,18 @@ func handlerAddfeed(s *state, cmd command) error {
 		return fmt.Errorf("error following feed: %v", err)
 	}
 
-	fmt.Printf("feed '%v' was added\n", feed.Name)
-	fmt.Printf("%+v\n", feed)
+	fmt.Printf("feed '%v' was created\n", feed.Name)
+	printFeed(feed, user)
+	fmt.Printf("feed '%v' was followed\n", feedFollow.UserName)
 
 	return nil
+}
+
+func printFeed(feed database.Feed, user database.User) {
+	fmt.Printf("* ID:            %s\n", feed.ID)
+	fmt.Printf("* Created:       %v\n", feed.CreatedAt)
+	fmt.Printf("* Updated:       %v\n", feed.UpdatedAt)
+	fmt.Printf("* Name:          %s\n", feed.Name)
+	fmt.Printf("* URL:           %s\n", feed.Url)
+	fmt.Printf("* User:          %s\n", user.Name)
 }

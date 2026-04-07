@@ -2,8 +2,14 @@ package main
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/lib/pq"
+	"github.com/thetramp22/blog_aggregator/internal/database"
 )
 
 func handlerAgg(s *state, cmd command) error {
@@ -21,14 +27,6 @@ func handlerAgg(s *state, cmd command) error {
 	for ; ; <-ticker.C {
 		scrapeFeeds(s)
 	}
-
-	// feedURL := "https://www.wagslane.dev/index.xml"
-	// feed, err := fetchFeed(context.Background(), feedURL)
-	// if err != nil {
-	// 	return fmt.Errorf("error fetching '%v': %v", feedURL, err)
-	// }
-	// fmt.Printf("%+v\n", feed)
-	// return nil
 }
 
 func scrapeFeeds(s *state) error {
@@ -44,12 +42,51 @@ func scrapeFeeds(s *state) error {
 		return fmt.Errorf("error getting feed: %v", err)
 	}
 
-	fmt.Println("===============")
-	fmt.Printf("* %v:\n", fetchedFeed.Channel.Title)
-	for _, item := range fetchedFeed.Channel.Item {
-		fmt.Printf(" - %v\n", item.Title)
+	err = saveFeedToDB(s, *fetchedFeed, nextFeed.ID)
+	if err != nil {
+		return err
 	}
-	fmt.Println("===============")
 
+	return nil
+}
+
+func saveFeedToDB(s *state, feed RSSFeed, feedId uuid.UUID) error {
+	for _, item := range feed.Channel.Item {
+		// Parse using RFC1123Z (includes numeric timezone offset)
+		pubTime, err := time.Parse(time.RFC1123Z, item.PubDate)
+		if err != nil {
+			// Fallback: try RFC1123 if the string uses named timezones like "MST"
+			pubTime, err = time.Parse(time.RFC1123, item.PubDate)
+		}
+
+		nullTime := sql.NullTime{
+			Time:  pubTime,
+			Valid: err == nil,
+		}
+
+		post, err := s.db.CreatePost(context.Background(), database.CreatePostParams{
+			ID:        uuid.New(),
+			CreatedAt: time.Now().UTC(),
+			UpdatedAt: time.Now().UTC(),
+			Title:     item.Title,
+			Url:       item.Link,
+			Description: sql.NullString{
+				String: item.Description,
+				Valid:  item.Description != "",
+			},
+			PublishedAt: nullTime,
+			FeedID:      feedId,
+		})
+		var pqErr *pq.Error
+		if errors.As(err, &pqErr) {
+			if pqErr.Code != "23505" {
+				fmt.Println(err)
+			}
+		} else if err != nil {
+			return err
+		} else {
+			fmt.Printf("post saved to db: %v\n", post.Title)
+		}
+	}
 	return nil
 }

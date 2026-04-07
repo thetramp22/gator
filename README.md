@@ -14,33 +14,49 @@ Once Postgres and Go are installed, gator can be installed by running the comman
 
 ## Usage
 
+### Register
+
 ```gator register <user>```
 
 Register a user.
+
+### Login
 
 ```gator login <user>```
 
 Login to gator as a registered user.
 
+### Add Feed
+
 ```gator addfeed <name> <url>```
 
 Add a new RSS feed to your database of feeds.  Adding a feed also follows the feed.
+
+### List Feeds
 
 ```gator feeds```
 
 Lists all feeds added by any user.
 
+### Follow A Feed
+
 ```gator follow <url>``` 
 
 Follows a feed added by another user.
+
+### Unfollow A Feed
 
 ```gator unfollow <url>```
 
 Unfollows a feed.
 
+### List Followed Feeds
+
 ```gator following```
 
 List all feeds followed by currently logged in user.
+
+### Run The Aggregator
 
 ```gator agg <interval>```
 

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/thetramp22/blog_aggregator/internal/database"
+	"github.com/thetramp22/gator/internal/database"
 )
 
 func handlerBrowse(s *state, cmd command, user database.User) error {

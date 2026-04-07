@@ -8,8 +8,8 @@ import (
 	"os"
 
 	_ "github.com/lib/pq"
-	"github.com/thetramp22/blog_aggregator/internal/config"
-	"github.com/thetramp22/blog_aggregator/internal/database"
+	"github.com/thetramp22/gator/internal/config"
+	"github.com/thetramp22/gator/internal/database"
 )
 
 type state struct {

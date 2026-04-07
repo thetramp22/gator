@@ -9,7 +9,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/lib/pq"
-	"github.com/thetramp22/blog_aggregator/internal/database"
+	"github.com/thetramp22/gator/internal/database"
 )
 
 func handlerAgg(s *state, cmd command) error {

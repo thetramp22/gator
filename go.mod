@@ -1,4 +1,4 @@
-module github.com/thetramp22/blog_aggregator
+module github.com/thetramp22/gator
 
 go 1.23.2
 
